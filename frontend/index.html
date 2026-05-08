@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ultimate Rules Interpreter</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #1a6b3a;
+    --green-light: #e8f5ee;
+    --green-mid: #2d9b57;
+    --green-dark: #0f4224;
+    --amber: #d97706;
+    --amber-light: #fef3c7;
+    --red: #dc2626;
+    --red-light: #fee2e2;
+    --blue: #1d4ed8;
+    --blue-light: #eff6ff;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-400: #9ca3af;
+    --gray-600: #4b5563;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --surface: #ffffff;
+    --bg: #f0f4f1;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--gray-800);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--green-dark);
+    padding: 1.25rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .disc-icon {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.9);
+    background: transparent;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .disc-icon::after {
+    content: '';
+    width: 18px; height: 6px;
+    border: 2px solid rgba(255,255,255,0.9);
+    border-radius: 50%;
+    display: block;
+  }
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+  header p {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.6);
+    font-family: 'DM Mono', monospace;
+    margin-top: 1px;
+  }
+  .header-badge {
+    margin-left: auto;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.8);
+    font-size: 0.7rem;
+    font-family: 'DM Mono', monospace;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  /* ── Layout ── */
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* ── Input card ── */
+  .input-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .input-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--green);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.6rem;
+    display: block;
+  }
+  textarea {
+    width: 100%;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 0.85rem 1rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--gray-800);
+    resize: vertical;
+    min-height: 110px;
+    transition: border-color 0.15s;
+    background: var(--gray-50);
+  }
+  textarea:focus {
+    outline: none;
+    border-color: var(--green-mid);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(45,155,87,0.08);
+  }
+  textarea::placeholder { color: var(--gray-400); }
+
+  .examples-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+  }
+  .example-btn {
+    font-size: 0.72rem;
+    font-family: 'DM Mono', monospace;
+    background: var(--green-light);
+    color: var(--green-dark);
+    border: 1px solid #c3dfc9;
+    border-radius: 20px;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: background 0.12s;
+    white-space: nowrap;
+  }
+  .example-btn:hover { background: #d4edda; }
+
+  .submit-row {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1rem;
+  }
+  .submit-btn {
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.65rem 1.5rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .submit-btn:hover { background: var(--green-mid); }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { background: var(--gray-400); cursor: not-allowed; transform: none; }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  .spinner.active { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .db-status {
+    font-size: 0.72rem;
+    font-family: 'DM Mono', monospace;
+    color: var(--gray-400);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .db-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gray-400); }
+  .db-dot.ready { background: var(--green-mid); }
+  .db-dot.error { background: var(--red); }
+
+  /* ── Result card ── */
+  .result-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+    animation: fadeUp 0.3s ease;
+    margin-bottom: 1.5rem;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .ruling-badge {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    padding: 6px 14px;
+    border-radius: 8px;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .badge-violation  { background: var(--red-light);   color: var(--red); }
+  .badge-no-violation { background: var(--green-light); color: var(--green-dark); }
+  .badge-foul       { background: var(--amber-light);  color: var(--amber); }
+  .badge-other      { background: var(--blue-light);   color: var(--blue); }
+
+  .ruling-summary {
+    font-size: 0.95rem;
+    color: var(--gray-800);
+    font-weight: 500;
+    line-height: 1.4;
+    flex: 1;
+  }
+
+  /* ── Confidence bar ── */
+  .confidence-block {
+    padding: 0.9rem 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .confidence-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--gray-400);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    white-space: nowrap;
+    width: 80px;
+    flex-shrink: 0;
+  }
+  .confidence-track {
+    flex: 1;
+    height: 6px;
+    background: var(--gray-100);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .confidence-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.6s ease;
+  }
+  .conf-high   { background: var(--green-mid); }
+  .conf-medium { background: var(--amber); }
+  .conf-low    { background: var(--red); }
+  .confidence-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 500;
+    width: 38px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .confidence-note {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .conf-note-high   { background: var(--green-light);  color: var(--green-dark); }
+  .conf-note-medium { background: var(--amber-light);  color: #92400e; }
+  .conf-note-low    { background: var(--red-light);    color: var(--red); }
+
+  /* ── Result body ── */
+  .result-body {
+    padding: 1.5rem;
+    display: grid;
+    gap: 1.25rem;
+  }
+  .result-section h3 {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--gray-400);
+    margin-bottom: 0.4rem;
+  }
+  .result-section p { font-size: 0.93rem; line-height: 1.65; color: var(--gray-800); }
+
+  .rule-ref {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    background: var(--green-light);
+    color: var(--green-dark);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border-left: 3px solid var(--green-mid);
+  }
+  .ambiguity-note {
+    font-size: 0.85rem;
+    background: var(--amber-light);
+    color: #92400e;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border-left: 3px solid var(--amber);
+    line-height: 1.6;
+  }
+
+  /* ── Feedback bar ── */
+  .feedback-bar {
+    padding: 0.85rem 1.5rem;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--gray-50);
+  }
+  .feedback-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--gray-400);
+    margin-right: 4px;
+  }
+  .feedback-btn {
+    background: none;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--gray-600);
+    transition: all 0.15s;
+    font-family: 'Inter', sans-serif;
+  }
+  .feedback-btn:hover { border-color: var(--gray-400); color: var(--gray-800); background: #fff; }
+  .feedback-btn.selected-up   { background: var(--green-light);  border-color: var(--green-mid); color: var(--green-dark); }
+  .feedback-btn.selected-down { background: var(--red-light);    border-color: #fca5a5;          color: var(--red); }
+  .feedback-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .feedback-thanks {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--green);
+    display: none;
+    animation: fadeUp 0.2s ease;
+  }
+  .feedback-thanks.show { display: block; }
+
+  /* ── Retrieved sections ── */
+  .retrieved-toggle {
+    width: 100%;
+    text-align: left;
+    background: var(--gray-50);
+    border: none;
+    border-top: 1px solid var(--gray-200);
+    padding: 0.85rem 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--gray-600);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.12s;
+  }
+  .retrieved-toggle:hover { background: var(--gray-100); }
+  .toggle-arrow { transition: transform 0.2s; }
+  .toggle-arrow.open { transform: rotate(180deg); }
+
+  .retrieved-sections { display: none; border-top: 1px solid var(--gray-200); }
+  .retrieved-sections.open { display: block; }
+
+  .retrieved-chunk {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .retrieved-chunk:last-child { border-bottom: none; }
+  .chunk-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0.4rem;
+  }
+  .chunk-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--green-dark);
+  }
+  .chunk-score {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--gray-400);
+    margin-left: auto;
+  }
+  .chunk-text {
+    font-size: 0.82rem;
+    color: var(--gray-600);
+    line-height: 1.6;
+    max-height: 120px;
+    overflow: hidden;
+    position: relative;
+  }
+  .chunk-text::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 40px;
+    background: linear-gradient(transparent, #fff);
+  }
+
+  /* ── Error ── */
+  .error-box {
+    background: var(--red-light);
+    border: 1px solid #fecaca;
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    color: var(--red);
+    font-size: 0.88rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    animation: fadeUp 0.25s ease;
+  }
+
+  /* ── Pipeline ── */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-200);
+  }
+  .pipe-step {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--gray-600);
+    background: var(--gray-100);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+  .pipe-step.active { background: var(--green-light); color: var(--green-dark); }
+  .pipe-arrow { color: var(--gray-400); font-size: 0.75rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="disc-icon"></div>
+  <div>
+    <h1>Ultimate Rules Interpreter</h1>
+    <p>USAU 11th Edition · RAG-powered · Llama 3.3 via Groq</p>
+  </div>
+  <span class="header-badge">Self-refereed assistant</span>
+</header>
+
+<div class="container">
+
+  <div class="input-card">
+    <label class="input-label" for="scenario">Describe the game scenario</label>
+    <textarea
+      id="scenario"
+      placeholder="e.g. The receiver caught the disc but then took two extra steps before stopping. The defender called travel. The receiver says they were establishing a pivot foot."
+    ></textarea>
+
+    <div class="examples-row">
+      <span style="font-size:0.72rem;color:var(--gray-400);font-family:'DM Mono',monospace;align-self:center;">Try:</span>
+      <button class="example-btn" onclick="setExample(0)">Travel — extra steps</button>
+      <button class="example-btn" onclick="setExample(1)">Strip foul mid-catch</button>
+      <button class="example-btn" onclick="setExample(2)">Contested stall count</button>
+      <button class="example-btn" onclick="setExample(3)">Pick call on a cutter</button>
+      <button class="example-btn" onclick="setExample(4)">Out of bounds reception</button>
+    </div>
+
+    <div class="submit-row">
+      <div class="db-status" id="db-status">
+        <div class="db-dot" id="db-dot"></div>
+        <span id="db-text">Checking database…</span>
+      </div>
+      <button class="submit-btn" id="submit-btn" onclick="interpret()">
+        <div class="spinner" id="spinner"></div>
+        <span id="btn-text">Get Ruling</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="result-area"></div>
+
+  <div class="pipeline">
+    <span class="pipe-step" id="p1">Scenario</span>
+    <span class="pipe-arrow">→</span>
+    <span class="pipe-step" id="p2">Embed query</span>
+    <span class="pipe-arrow">→</span>
+    <span class="pipe-step" id="p3">ChromaDB retrieval</span>
+    <span class="pipe-arrow">→</span>
+    <span class="pipe-step" id="p4">Llama 3.3 (Groq)</span>
+    <span class="pipe-arrow">→</span>
+    <span class="pipe-step" id="p5">Structured ruling</span>
+  </div>
+
+</div>
+
+<script>
+const BACKEND = 'http://127.0.0.1:5000';
+
+const EXAMPLES = [
+  "The receiver caught the disc at full speed and took three extra steps before stopping. The defender immediately called travel. The receiver argues they were decelerating and couldn't stop faster.",
+  "A defender attempted to knock away a disc mid-catch. The receiver had one hand on the disc when the defender made contact, causing both to lose control. The receiver says it was a strip foul.",
+  "The marker's stall count seemed fast to the thrower, who called fast count at 'stall 7'. The marker disagrees and says the count was legal. What happens to the count?",
+  "A cutter running a deep route crossed directly in front of the primary defender who was chasing them, forcing the defender to slow down and change direction. The defender called pick.",
+  "A receiver leaped for a disc near the sideline. They caught it clearly in the air but landed with one foot in bounds and one foot out of bounds simultaneously. Is it a completion?"
+];
+
+// ── Confidence helpers ────────────────────────────────────────────────────
+function calcConfidence(sections) {
+  if (!sections || sections.length === 0) return 0;
+  // Average of top-3 relevance scores, scaled 0-100
+  const top = sections.slice(0, 3).map(s => s.relevance_score || 0);
+  const avg = top.reduce((a, b) => a + b, 0) / top.length;
+  // Relevance scores from ChromaDB (1-distance) typically range 0.3–0.9
+  // Map 0.4 → 0%, 0.75 → 100% for display
+  const pct = Math.round(Math.min(100, Math.max(0, ((avg - 0.4) / 0.35) * 100)));
+  return pct;
+}
+
+function confClass(pct) {
+  if (pct >= 65) return 'high';
+  if (pct >= 35) return 'medium';
+  return 'low';
+}
+
+function confLabel(pct) {
+  if (pct >= 65) return 'High confidence';
+  if (pct >= 35) return 'Medium confidence';
+  return 'Low confidence — verify manually';
+}
+
+// ── Status check ─────────────────────────────────────────────────────────
+async function checkStatus() {
+  try {
+    const r = await fetch(`${BACKEND}/api/status`);
+    const d = await r.json();
+    const dot = document.getElementById('db-dot');
+    const txt = document.getElementById('db-text');
+    if (d.ready) {
+      dot.className = 'db-dot ready';
+      txt.textContent = `DB ready — ${d.chunks} rule chunks indexed`;
+    } else {
+      dot.className = 'db-dot error';
+      txt.textContent = 'DB not populated — run ingest.py first';
+    }
+  } catch {
+    document.getElementById('db-dot').className = 'db-dot error';
+    document.getElementById('db-text').textContent = 'Backend offline — start app.py';
+  }
+}
+
+function setExample(i) {
+  document.getElementById('scenario').value = EXAMPLES[i];
+  document.getElementById('scenario').focus();
+}
+
+function setPipelineStep(step) {
+  for (let i = 1; i <= 5; i++) {
+    document.getElementById(`p${i}`).className = i <= step ? 'pipe-step active' : 'pipe-step';
+  }
+}
+
+function getBadgeClass(ruling) {
+  const r = (ruling || '').toLowerCase();
+  if (r.includes('pick'))                                          return 'badge-violation';
+  if (r.includes('travel'))                                        return 'badge-violation';
+  if (r.includes('foul'))                                          return 'badge-foul';
+  if (r.includes('no violation') || r.includes('no travel'))       return 'badge-no-violation';
+  if (r.includes('violation') && !r.includes('no '))               return 'badge-violation';
+  return 'badge-other';
+}
+
+// ── Main interpret ────────────────────────────────────────────────────────
+async function interpret() {
+  const scenario = document.getElementById('scenario').value.trim();
+  if (!scenario) { document.getElementById('scenario').focus(); return; }
+
+  const btn     = document.getElementById('submit-btn');
+  const spinner = document.getElementById('spinner');
+  const btnText = document.getElementById('btn-text');
+  const area    = document.getElementById('result-area');
+
+  btn.disabled = true;
+  spinner.className = 'spinner active';
+  btnText.textContent = 'Analyzing…';
+  area.innerHTML = '';
+  setPipelineStep(1);
+
+  try {
+    setPipelineStep(2);
+    await sleep(300);
+    setPipelineStep(3);
+
+    const resp = await fetch(`${BACKEND}/api/interpret`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scenario })
+    });
+
+    setPipelineStep(4);
+    const data = await resp.json();
+    setPipelineStep(5);
+
+    if (!resp.ok || data.error) {
+      area.innerHTML = `<div class="error-box">⚠ ${data.error || 'An error occurred.'}</div>`;
+      return;
+    }
+
+    area.innerHTML = renderResult(data, scenario);
+  } catch (e) {
+    area.innerHTML = `<div class="error-box">⚠ Could not reach the backend. Make sure app.py is running on port 5000.</div>`;
+    setPipelineStep(0);
+  } finally {
+    btn.disabled = false;
+    spinner.className = 'spinner';
+    btnText.textContent = 'Get Ruling';
+  }
+}
+
+// ── Render result ─────────────────────────────────────────────────────────
+let _resultId = 0;
+
+function renderResult(d, scenario) {
+  const id          = ++_resultId;
+  const badgeClass  = getBadgeClass(d.ruling);
+  const sections    = d.retrieved_sections || [];
+  const hasAmbiguity = d.ambiguity_note && d.ambiguity_note.trim().length > 2;
+
+  // Confidence
+  const pct   = calcConfidence(sections);
+  const cls   = confClass(pct);
+  const label = confLabel(pct);
+
+  const sectionHTML = sections.map(s => `
+    <div class="retrieved-chunk">
+      <div class="chunk-header">
+        <span class="chunk-title">${escHtml(s.title)}</span>
+        <span class="chunk-score">relevance: ${(s.relevance_score || 0).toFixed(2)}</span>
+      </div>
+      <div class="chunk-text">${escHtml(s.text)}</div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="result-card" id="card-${id}">
+
+      <!-- Header: badge + summary -->
+      <div class="result-header">
+        <span class="ruling-badge ${badgeClass}">${escHtml(d.ruling)}</span>
+        <span class="ruling-summary">${escHtml(d.summary)}</span>
+      </div>
+
+      <!-- Confidence bar -->
+      <div class="confidence-block">
+        <span class="confidence-label">Confidence</span>
+        <div class="confidence-track">
+          <div class="confidence-fill conf-${cls}" style="width:${pct}%"></div>
+        </div>
+        <span class="confidence-pct conf-${cls === 'high' ? 'note-high' : cls === 'medium' ? 'note-medium' : 'note-low'}"
+              style="color:${cls==='high'?'var(--green-mid)':cls==='medium'?'var(--amber)':'var(--red)'}">
+          ${pct}%
+        </span>
+        <span class="confidence-note conf-note-${cls}">${label}</span>
+      </div>
+
+      <!-- Body -->
+      <div class="result-body">
+        <div class="result-section">
+          <h3>Explanation</h3>
+          <p>${escHtml(d.explanation)}</p>
+        </div>
+        <div class="result-section">
+          <h3>Rule reference</h3>
+          <div class="rule-ref">${escHtml(d.rule_reference)}</div>
+        </div>
+        ${hasAmbiguity ? `
+        <div class="result-section">
+          <h3>Ambiguity note</h3>
+          <div class="ambiguity-note">${escHtml(d.ambiguity_note)}</div>
+        </div>` : ''}
+      </div>
+
+      <!-- Feedback bar -->
+      <div class="feedback-bar" id="fb-bar-${id}">
+        <span class="feedback-label">Was this ruling helpful?</span>
+        <button class="feedback-btn" id="fb-up-${id}"
+                onclick="sendFeedback(${id}, 'up', ${JSON.stringify(escHtml(scenario))}, ${JSON.stringify(escHtml(d.ruling))})">
+          👍 Yes
+        </button>
+        <button class="feedback-btn" id="fb-down-${id}"
+                onclick="sendFeedback(${id}, 'down', ${JSON.stringify(escHtml(scenario))}, ${JSON.stringify(escHtml(d.ruling))})">
+          👎 No
+        </button>
+        <span class="feedback-thanks" id="fb-thanks-${id}">Thanks for the feedback!</span>
+      </div>
+
+      <!-- Retrieved sections toggle -->
+      ${sections.length > 0 ? `
+      <button class="retrieved-toggle" onclick="toggleSections(this, 'rs-${id}', 'ra-${id}')">
+        <span class="toggle-arrow" id="ra-${id}">▾</span>
+        <span id="rs-label-${id}">Show ${sections.length} retrieved rule sections (RAG context)</span>
+      </button>
+      <div class="retrieved-sections" id="rs-${id}">
+        ${sectionHTML}
+      </div>` : ''}
+    </div>
+  `;
+}
+
+// ── Feedback ──────────────────────────────────────────────────────────────
+async function sendFeedback(id, vote, scenario, ruling) {
+  const upBtn    = document.getElementById(`fb-up-${id}`);
+  const downBtn  = document.getElementById(`fb-down-${id}`);
+  const thanks   = document.getElementById(`fb-thanks-${id}`);
+
+  // Optimistic UI update
+  upBtn.disabled   = true;
+  downBtn.disabled = true;
+  upBtn.className   = 'feedback-btn' + (vote === 'up'   ? ' selected-up'   : '');
+  downBtn.className = 'feedback-btn' + (vote === 'down' ? ' selected-down' : '');
+  thanks.className  = 'feedback-thanks show';
+
+  // Fire and forget to backend
+  try {
+    await fetch(`${BACKEND}/api/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ vote, scenario, ruling, timestamp: new Date().toISOString() })
+    });
+  } catch {
+    // Silent fail — feedback logging is best-effort
+  }
+}
+
+// ── Toggle retrieved sections ─────────────────────────────────────────────
+function toggleSections(btn, divId, arrowId) {
+  const div    = document.getElementById(divId);
+  const arrow  = document.getElementById(arrowId);
+  const label  = document.getElementById(`rs-label-${divId.replace('rs-','')}`);
+  const isOpen = div.classList.contains('open');
+  div.classList.toggle('open', !isOpen);
+  arrow.classList.toggle('open', !isOpen);
+  const n = div.querySelectorAll('.retrieved-chunk').length;
+  label.textContent = isOpen
+    ? `Show ${n} retrieved rule sections (RAG context)`
+    : `Hide retrieved rule sections`;
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+document.getElementById('scenario').addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') interpret();
+});
+
+checkStatus();
+</script>
+</body>
+</html>
