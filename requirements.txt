@@ -1,6 +1,6 @@
 flask==3.1.0
 flask-cors==5.0.1
-chromadb==0.6.3
+pinecone==9.0.0
 sentence-transformers==3.4.1
 groq==0.18.0
 pypdf==5.9.0
