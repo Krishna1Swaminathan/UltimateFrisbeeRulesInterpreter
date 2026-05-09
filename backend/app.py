@@ -21,6 +21,18 @@ from pinecone import Pinecone
 from sentence_transformers import SentenceTransformer
 from groq import Groq
 
+# Add this import at the top
+from flask import Flask, request, jsonify, send_from_directory
+
+# ... (keep your existing setup code)
+
+# Add this route BEFORE your other routes
+@app.route("/")
+def serve_frontend():
+    return send_from_directory("frontend", "index.html")
+
+# ... (keep your /api/ routes below)
+
 # ── Config ────────────────────────────────────────────────────────────────────
 INDEX_NAME  = "usau-rules"
 EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
