@@ -4,83 +4,93 @@ A RAG-powered rules assistant for USAU Ultimate Frisbee.
 Describe a game scenario in plain English → get a structured ruling with
 explanation, rule reference, and ambiguity notes — grounded in the official rulebook.
 
-## Architecture
+🌐 **Live demo:** https://ultimatefrisbeerulesinterpreter.onrender.com
+
+---
+
+## How it works
 
 ```
 User scenario
      ↓
-Sentence-transformer embedding (all-MiniLM-L6-v2)
+HF Inference API — all-MiniLM-L6-v2 embedding (no local model)
      ↓
-ChromaDB vector retrieval (top-4 rule sections)
+Pinecone vector retrieval (top-6 rule sections)
      ↓
-Groq API — Llama 3 70B (structured JSON output)
+Groq API — Llama 3.3 70B (structured JSON output)
      ↓
 Ruling + Explanation + Rule Reference + Ambiguity Note
 ```
 
 ## Tech Stack
 
-| Layer       | Tool                                   |
-|-------------|----------------------------------------|
-| LLM         | Llama 3 70B via Groq API (free tier)  |
-| Embeddings  | sentence-transformers/all-MiniLM-L6-v2 |
-| Vector DB   | ChromaDB (local, persistent)           |
-| Backend     | Flask + Flask-CORS                     |
-| Frontend    | Plain HTML/CSS/JS (no framework)       |
-| PDF parsing | pypdf                                  |
+| Layer       | Tool                                              |
+|-------------|---------------------------------------------------|
+| LLM         | Llama 3.3 70B Versatile via Groq API (free tier) |
+| Embeddings  | all-MiniLM-L6-v2 via HF Inference API (no torch) |
+| Vector DB   | Pinecone Serverless (cloud, free tier)            |
+| Backend     | Flask + Flask-CORS (serves frontend + API)        |
+| Frontend    | Vanilla HTML/CSS/JS (no framework, no build step) |
+| PDF parsing | pypdf                                             |
+| Hosting     | Render (free tier)                                |
 
-## Setup
+---
 
-### 1. Install dependencies
+## Local Development Setup
+
+### 1. Clone and install dependencies
 
 ```bash
+git clone https://github.com/yourusername/ultimate-rules-interpreter.git
+cd ultimate-rules-interpreter
 pip install -r requirements.txt
 ```
 
-### 2. Get a free Groq API key
+### 2. Get API keys (all free, no credit card required)
 
-1. Go to https://console.groq.com
-2. Sign up for a free account
-3. Create an API key
-4. Set it as an environment variable:
+| Service | Where to get it |
+|---------|----------------|
+| Groq | https://console.groq.com |
+| Pinecone | https://app.pinecone.io |
+| Hugging Face | https://huggingface.co/settings/tokens |
 
 ```bash
-export GROQ_API_KEY=your_key_here
+export GROQ_API_KEY=your_groq_key
+export PINECONE_API_KEY=your_pinecone_key
+export HF_API_KEY=your_hf_token
 ```
 
 ### 3. Get the USAU rulebook PDF
 
-Download the official USAU 11th Edition rules PDF from:
+Download the official USAU 11th Edition rules from:
 https://usaultimate.org/rules/
 
 Save it as: `data/usau_rules.pdf`
 
 ### 4. Ingest the rulebook (run once)
 
+This embeds the rulebook and uploads vectors to Pinecone.
+You only need to run this once — vectors persist in the cloud.
+
 ```bash
 cd backend
 python ingest.py --pdf ../data/usau_rules.pdf
 ```
 
-This will:
-- Extract text from the PDF
-- Chunk by rule section
-- Embed each chunk with sentence-transformers
-- Store everything in ChromaDB at `data/chroma_db/`
-
-You'll see output like:
+Expected output:
 ```
 📄 Reading PDF: ../data/usau_rules.pdf
    Extracted 87,234 characters
-✂️  Chunking by rule section…
-   142 chunks created
-🧠 Loading embedding model: sentence-transformers/all-MiniLM-L6-v2
-📦 Connecting to ChromaDB…
-⚙️  Embedding and storing chunks…
-✅ Done! 142 rule sections stored in ChromaDB.
+✂️  Chunking by top-level rule section…
+   22 chunks created
+🚀 Embedding via HF Inference API...
+   Embedded 22/22
+🌲 Setting up Pinecone...
+   Index ready.
+✅ Done! 22 rule sections stored in Pinecone.
 ```
 
-### 5. Start the Flask backend
+### 5. Start the backend
 
 ```bash
 cd backend
@@ -88,70 +98,93 @@ python app.py
 ```
 
 Server starts at http://localhost:5000
+Open http://localhost:5000 in your browser — Flask serves the frontend directly.
 
-### 6. Open the frontend
+---
 
-Open `frontend/index.html` in your browser.
-(No web server needed — just open the file directly.)
+## Deployment (Render)
 
-## How to use
+1. Push the repo to GitHub
+2. Go to https://render.com → New Web Service → connect your repo
+3. Set:
+   - **Build command:** `pip install -r requirements.txt`
+   - **Start command:** `python backend/app.py`
+   - **Instance type:** Free
+4. Add environment variables:
+   - `GROQ_API_KEY`
+   - `PINECONE_API_KEY`
+   - `HF_API_KEY`
+5. Deploy — Render gives you a live URL
 
-1. Type or paste a game scenario in the text box
-2. Click **Get Ruling** (or press Cmd/Ctrl+Enter)
-3. See the structured ruling:
-   - **Ruling** — Travel / Foul / No Violation / etc.
-   - **Explanation** — Plain English reasoning
-   - **Rule Reference** — Exact USAU section that applies
-   - **Ambiguity Note** — If the scenario is genuinely unclear
-4. Click "Show retrieved rule sections" to see what the RAG pipeline retrieved
+> **Note:** Free tier Render services sleep after 15 minutes of inactivity.
+> The first request after sleep may take ~10 seconds to respond.
+
+---
 
 ## Project Structure
 
 ```
 ultimate-rules-interpreter/
 ├── backend/
-│   ├── app.py          Flask API server
-│   └── ingest.py       PDF → ChromaDB ingestion pipeline
+│   ├── app.py          Flask API + frontend server
+│   └── ingest.py       PDF → Pinecone ingestion pipeline
 ├── frontend/
-│   └── index.html      Single-page web UI
+│   └── index.html      Single-page web UI (served by Flask)
 ├── data/
-│   ├── usau_rules.pdf  ← You add this
-│   └── chroma_db/      ← Created by ingest.py
+│   └── usau_rules.pdf  ← You add this (not committed to git)
+├── Procfile            Render start command
+├── runtime.txt         Python version for Render
 ├── requirements.txt
-└── README.md
+├── README.md
+└── CLAUDE.md           AI collaboration context
 ```
 
-## Key concepts (for presentation)
+---
+
+## How to use
+
+1. Type or paste a game scenario in natural language
+2. Click **Get Ruling** (or press Cmd/Ctrl+Enter)
+3. See the structured ruling:
+   - **Ruling** — Travel / Foul / Pick / No Violation / etc.
+   - **Explanation** — Plain English reasoning with subsection citations
+   - **Rule Reference** — Exact USAU section that applies
+   - **Ambiguity Note** — Flags genuine edge cases
+4. Click "Show retrieved rule sections" to inspect the RAG context
+5. Use the history sidebar to revisit previous rulings in the session
+
+---
+
+## Key Concepts
 
 ### RAG (Retrieval-Augmented Generation)
-Instead of relying solely on Llama 3's training data, we:
-1. Store the actual rulebook as searchable vector embeddings
-2. At query time, retrieve the most relevant sections
-3. Feed those sections to the LLM as grounding context
-
-This means the LLM can't hallucinate rules — it's working from the actual text.
-
-### Why structured output?
-The system prompt forces JSON output with specific fields.
-This makes the ruling machine-readable and lets the UI render each
-component (ruling, explanation, reference) separately.
+Instead of relying on an LLM's training data (which may hallucinate rules),
+the system stores the actual USAU rulebook as vector embeddings and retrieves
+the most relevant sections at query time. The LLM reasons over real rule text.
 
 ### Chunking strategy
-The rulebook is split at rule section boundaries (e.g. "11.3.2 ...").
-This is better than fixed-size windows because rule sections are
-naturally semantic units — each chunk has a clear meaning.
+The rulebook is chunked at **top-level rule boundaries only** (Rule 1, Rule 11,
+Rule 17, etc.), keeping all subsections (17.A, 17.B.1, etc.) together in one
+chunk. This prevents orphaned fragments and ensures the retriever always returns
+semantically complete rule sections.
+
+### API-first embeddings
+`sentence-transformers` runs locally but requires ~500MB RAM — too much for
+Render's free tier. Instead, the HF Inference API embeds text remotely.
+The server makes an HTTP call and gets back a vector, using ~60MB RAM total.
+
+---
 
 ## Troubleshooting
 
-**"DB not populated"** — Run ingest.py first.
+**HF API 404** — The endpoint URL may have changed. Current correct URL:
+`https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction`
 
-**"Backend offline"** — Make sure app.py is running on port 5000.
+**Pinecone index not found** — Run `ingest.py` first to populate the index.
 
-**"GROQ_API_KEY not set"** — Export the env variable before starting app.py.
+**Groq rate limited** — Switch `GROQ_MODEL` in `app.py` to `llama-3.1-8b-instant`
+for higher rate limits at slightly lower quality.
 
-**Chunking produces 0 chunks** — The PDF may use a different heading format.
-ingest.py will fall back to window chunking automatically, but you may want
-to inspect the extracted text and adjust the regex in `chunk_by_section()`.
-
-**Rate limited by Groq** — Switch `GROQ_MODEL` in app.py from `llama3-70b-8192`
-to `llama3-8b-8192` (faster, smaller, still very capable).
+**Chunking produces 0 chunks** — The PDF may use non-standard heading formatting.
+`ingest.py` falls back to window chunking automatically. Inspect the extracted
+text and adjust the regex in `chunk_by_section()` if needed.
