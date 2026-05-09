@@ -4,3 +4,4 @@ pinecone==9.0.0
 sentence-transformers==3.4.1
 groq==0.18.0
 pypdf==5.9.0
+gunicorn==23.0.0
