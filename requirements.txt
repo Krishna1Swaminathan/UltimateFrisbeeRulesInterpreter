@@ -1,7 +1,6 @@
 flask==3.1.0
 flask-cors==5.0.1
 pinecone==9.0.0
-sentence-transformers==3.4.1
+requests==2.32.3
 groq==0.18.0
 pypdf==5.9.0
-gunicorn==23.0.0

@@ -1,100 +1,90 @@
 """
 app.py — Flask backend for the Ultimate Frisbee Rules Interpreter.
-Uses Pinecone for vector storage (works on Render's free tier).
-
-Endpoints:
-    POST /api/interpret   — RAG pipeline: retrieve + generate
-    GET  /api/health      — Liveness check
-    GET  /api/status      — Check Pinecone index is populated
-
-Run locally:
-    GROQ_API_KEY=... PINECONE_API_KEY=... python app.py
+Embeddings via HF Inference API (no torch, ~60MB RAM).
+Runs on Render's free tier.
 """
 
 import os
 import json
-from pathlib import Path
+import time
 
+import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pinecone import Pinecone
-from sentence_transformers import SentenceTransformer
 from groq import Groq
-
-# Add this import at the top
-from flask import Flask, request, jsonify, send_from_directory
-
-# ... (keep your existing setup code)
-
-
-
-# ... (keep your /api/ routes below)
 
 # ── Config ────────────────────────────────────────────────────────────────────
 INDEX_NAME  = "usau-rules"
-EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+HF_MODEL    = "sentence-transformers/all-MiniLM-L6-v2"
+HF_API_URL  = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{HF_MODEL}"
 GROQ_MODEL  = "llama-3.3-70b-versatile"
 TOP_K       = 6
 
-# ── App setup ─────────────────────────────────────────────────────────────────
 app = Flask(__name__)
 CORS(app, origins="*")
 
-
-# Add this route BEFORE your other routes
-@app.route("/")
-def serve_frontend():
-    # app.root_path is the /backend folder
-    # We go up (..) then into /frontend
-    frontend_dir = os.path.join(app.root_path, '..', 'frontend')
-    return send_from_directory(frontend_dir, 'index.html')
-
-
-_embed_model   = None
-_pinecone_idx  = None
-_groq_client   = None
-
-
-def get_embed_model():
-    global _embed_model
-    if _embed_model is None:
-        _embed_model = SentenceTransformer(EMBED_MODEL)
-    return _embed_model
+_pinecone_idx = None
+_groq_client  = None
 
 
 def get_index():
     global _pinecone_idx
     if _pinecone_idx is None:
-        api_key = os.environ.get("PINECONE_API_KEY")
-        if not api_key:
-            raise RuntimeError("PINECONE_API_KEY environment variable not set.")
-        pc = Pinecone(api_key=api_key)
-        _pinecone_idx = pc.Index(INDEX_NAME)
+        key = os.environ.get("PINECONE_API_KEY")
+        if not key:
+            raise RuntimeError("PINECONE_API_KEY not set.")
+        _pinecone_idx = Pinecone(api_key=key).Index(INDEX_NAME)
     return _pinecone_idx
 
 
 def get_groq():
     global _groq_client
     if _groq_client is None:
-        api_key = os.environ.get("GROQ_API_KEY")
-        if not api_key:
-            raise RuntimeError("GROQ_API_KEY environment variable not set.")
-        _groq_client = Groq(api_key=api_key)
+        key = os.environ.get("GROQ_API_KEY")
+        if not key:
+            raise RuntimeError("GROQ_API_KEY not set.")
+        _groq_client = Groq(api_key=key)
     return _groq_client
+
+
+def embed_query(text: str) -> list[float]:
+    """Embed a single query string via HF Inference API."""
+    hf_key  = os.environ.get("HF_API_KEY")
+    if not hf_key:
+        raise RuntimeError("HF_API_KEY not set.")
+
+    headers = {"Authorization": f"Bearer {hf_key}"}
+
+    for attempt in range(3):
+        resp = requests.post(
+            HF_API_URL,
+            headers = headers,
+            json    = {"inputs": text, "options": {"wait_for_model": True}},
+            timeout = 30,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            if isinstance(data[0], list):
+                return [sum(col) / len(col) for col in zip(*data)]
+            return data
+        elif resp.status_code == 503:
+            wait = resp.json().get("estimated_time", 10)
+            time.sleep(wait + 1)
+        else:
+            raise RuntimeError(f"HF API error {resp.status_code}: {resp.text}")
+
+    raise RuntimeError("HF API unavailable after retries.")
 
 
 # ── RAG pipeline ──────────────────────────────────────────────────────────────
 def retrieve(query: str) -> list[dict]:
-    model = get_embed_model()
-    index = get_index()
-
-    query_vec = model.encode([query]).tolist()[0]
-    results   = index.query(
-        vector          = query_vec,
-        top_k           = TOP_K,
+    query_vec = embed_query(query)
+    results   = get_index().query(
+        vector           = query_vec,
+        top_k            = TOP_K,
         include_metadata = True,
     )
-
     chunks = []
     for match in results.matches:
         meta = match.metadata or {}
@@ -135,8 +125,8 @@ Your response MUST be a valid JSON object with EXACTLY these fields:
 }
 
 Rules:
-- Read every subsection in the retrieved text before ruling — do not stop at the heading.
-- Cite the most specific subsection number you can find (e.g. 17.B.1 not just 17).
+- Read every subsection in the retrieved text before ruling.
+- Cite the most specific subsection number you can find.
 - Be direct. Players want a clear ruling, not hedging.
 - Keep explanation in plain language.
 - Output ONLY the JSON object. No preamble, no markdown fences.
@@ -145,29 +135,18 @@ Rules:
 
 def generate_ruling(scenario: str, chunks: list[dict]) -> dict:
     context = "\n\n".join(f"[{c['title']}]\n{c['text']}" for c in chunks)
+    user_message = f"GAME SCENARIO:\n{scenario}\n\nRETRIEVED RULE SECTIONS:\n{context}\n\nReturn your ruling as JSON."
 
-    user_message = f"""GAME SCENARIO:
-{scenario}
-
-RETRIEVED RULE SECTIONS:
-{context}
-
-Analyze this scenario using only the rule sections above and return your ruling as JSON."""
-
-    client   = get_groq()
-    response = client.chat.completions.create(
-        model    = GROQ_MODEL,
-        messages = [
+    raw = get_groq().chat.completions.create(
+        model       = GROQ_MODEL,
+        messages    = [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user",   "content": user_message},
         ],
         temperature = 0.1,
         max_tokens  = 800,
-    )
+    ).choices[0].message.content.strip()
 
-    raw = response.choices[0].message.content.strip()
-
-    # Strip markdown fences if model adds them
     if raw.startswith("```"):
         raw = raw.split("```")[1]
         if raw.startswith("json"):
@@ -191,9 +170,7 @@ def health():
 @app.route("/api/status", methods=["GET"])
 def status():
     try:
-        index = get_index()
-        stats = index.describe_index_stats()
-        count = stats.total_vector_count
+        count = get_index().describe_index_stats().total_vector_count
         return jsonify({"ready": count > 0, "chunks": count})
     except Exception as e:
         return jsonify({"ready": False, "error": str(e)}), 200
@@ -207,7 +184,7 @@ def interpret():
 
     scenario = data["scenario"].strip()
     if len(scenario) < 10:
-        return jsonify({"error": "Scenario is too short. Describe what happened in more detail."}), 400
+        return jsonify({"error": "Scenario is too short."}), 400
 
     try:
         chunks = retrieve(scenario)
@@ -216,7 +193,7 @@ def interpret():
     except RuntimeError as e:
         return jsonify({"error": str(e)}), 500
     except json.JSONDecodeError:
-        return jsonify({"error": "The AI returned a malformed response. Try again."}), 500
+        return jsonify({"error": "AI returned malformed response. Try again."}), 500
     except Exception as e:
         return jsonify({"error": f"Something went wrong: {str(e)}"}), 500
 
@@ -224,15 +201,7 @@ def interpret():
 # ── Entry point ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    print(f"🥏 Ultimate Frisbee Rules Interpreter — Backend (port {port})")
-    print(f"   LLM:       {GROQ_MODEL}")
-    print(f"   Embeddings:{EMBED_MODEL}")
-    print(f"   Pinecone:  index '{INDEX_NAME}'")
-    print()
-
-    if not os.environ.get("GROQ_API_KEY"):
-        print("⚠️  WARNING: GROQ_API_KEY is not set.")
-    if not os.environ.get("PINECONE_API_KEY"):
-        print("⚠️  WARNING: PINECONE_API_KEY is not set.")
-
+    print(f"🥏 Ultimate Rules Interpreter — port {port}")
+    print(f"   Embedder: {HF_MODEL} via HF Inference API")
+    print(f"   LLM:      {GROQ_MODEL} via Groq")
     app.run(host="0.0.0.0", port=port, debug=False)
