@@ -44,7 +44,10 @@ CORS(app, origins="*")
 # Add this route BEFORE your other routes
 @app.route("/")
 def serve_frontend():
-    return send_from_directory("frontend", "index.html")
+    # app.root_path is the /backend folder
+    # We go up (..) then into /frontend
+    frontend_dir = os.path.join(app.root_path, '..', 'frontend')
+    return send_from_directory(frontend_dir, 'index.html')
 
 
 _embed_model   = None
