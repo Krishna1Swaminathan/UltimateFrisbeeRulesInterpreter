@@ -26,10 +26,7 @@ from flask import Flask, request, jsonify, send_from_directory
 
 # ... (keep your existing setup code)
 
-# Add this route BEFORE your other routes
-@app.route("/")
-def serve_frontend():
-    return send_from_directory("frontend", "index.html")
+
 
 # ... (keep your /api/ routes below)
 
@@ -42,6 +39,13 @@ TOP_K       = 6
 # ── App setup ─────────────────────────────────────────────────────────────────
 app = Flask(__name__)
 CORS(app, origins="*")
+
+
+# Add this route BEFORE your other routes
+@app.route("/")
+def serve_frontend():
+    return send_from_directory("frontend", "index.html")
+
 
 _embed_model   = None
 _pinecone_idx  = None
