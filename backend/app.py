@@ -1,7 +1,7 @@
 """
 app.py — Flask backend for the Ultimate Frisbee Rules Interpreter.
 Embeddings via HF Inference API (no torch, ~60MB RAM).
-Runs on Render's free tier.
+Serves the frontend from /frontend at the root route.
 """
 
 import os
@@ -9,7 +9,7 @@ import json
 import time
 
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from pinecone import Pinecone
 from groq import Groq
@@ -21,7 +21,10 @@ HF_API_URL  = f"https://api-inference.huggingface.co/pipeline/feature-extraction
 GROQ_MODEL  = "llama-3.3-70b-versatile"
 TOP_K       = 6
 
-app = Flask(__name__)
+# Frontend is one directory up from backend/
+FRONTEND_DIR = os.path.join(os.path.dirname(__file__), '..', 'frontend')
+
+app = Flask(__name__, static_folder=FRONTEND_DIR)
 CORS(app, origins="*")
 
 _pinecone_idx = None
@@ -49,13 +52,11 @@ def get_groq():
 
 
 def embed_query(text: str) -> list[float]:
-    """Embed a single query string via HF Inference API."""
-    hf_key  = os.environ.get("HF_API_KEY")
+    hf_key = os.environ.get("HF_API_KEY")
     if not hf_key:
         raise RuntimeError("HF_API_KEY not set.")
 
     headers = {"Authorization": f"Bearer {hf_key}"}
-
     for attempt in range(3):
         resp = requests.post(
             HF_API_URL,
@@ -85,16 +86,12 @@ def retrieve(query: str) -> list[dict]:
         top_k            = TOP_K,
         include_metadata = True,
     )
-    chunks = []
-    for match in results.matches:
-        meta = match.metadata or {}
-        chunks.append({
-            "text":            meta.get("text", ""),
-            "title":           meta.get("title", "Unknown"),
-            "section":         meta.get("section", ""),
-            "relevance_score": round(match.score, 3),
-        })
-    return chunks
+    return [{
+        "text":            m.metadata.get("text", ""),
+        "title":           m.metadata.get("title", "Unknown"),
+        "section":         m.metadata.get("section", ""),
+        "relevance_score": round(m.score, 3),
+    } for m in results.matches]
 
 
 SYSTEM_PROMPT = """You are an expert Ultimate Frisbee rules interpreter with deep knowledge of
@@ -134,7 +131,7 @@ Rules:
 
 
 def generate_ruling(scenario: str, chunks: list[dict]) -> dict:
-    context = "\n\n".join(f"[{c['title']}]\n{c['text']}" for c in chunks)
+    context      = "\n\n".join(f"[{c['title']}]\n{c['text']}" for c in chunks)
     user_message = f"GAME SCENARIO:\n{scenario}\n\nRETRIEVED RULE SECTIONS:\n{context}\n\nReturn your ruling as JSON."
 
     raw = get_groq().chat.completions.create(
@@ -161,7 +158,17 @@ def generate_ruling(scenario: str, chunks: list[dict]) -> dict:
     return ruling
 
 
-# ── Routes ────────────────────────────────────────────────────────────────────
+# ── Frontend routes ───────────────────────────────────────────────────────────
+@app.route('/')
+def serve_index():
+    return send_from_directory(FRONTEND_DIR, 'index.html')
+
+@app.route('/<path:filename>')
+def serve_static(filename):
+    return send_from_directory(FRONTEND_DIR, filename)
+
+
+# ── API routes ────────────────────────────────────────────────────────────────
 @app.route("/api/health", methods=["GET"])
 def health():
     return jsonify({"status": "ok"})
@@ -202,6 +209,7 @@ def interpret():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     print(f"🥏 Ultimate Rules Interpreter — port {port}")
+    print(f"   Frontend: {os.path.abspath(FRONTEND_DIR)}")
     print(f"   Embedder: {HF_MODEL} via HF Inference API")
     print(f"   LLM:      {GROQ_MODEL} via Groq")
     app.run(host="0.0.0.0", port=port, debug=False)
