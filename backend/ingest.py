@@ -25,7 +25,7 @@ from pypdf import PdfReader
 # ── Config ────────────────────────────────────────────────────────────────────
 INDEX_NAME      = "usau-rules"
 HF_MODEL        = "sentence-transformers/all-MiniLM-L6-v2"
-HF_API_URL      = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{HF_MODEL}"
+HF_API_URL = f"https://api-inference.huggingface.co/models/{HF_MODEL}"
 EMBED_DIM       = 384
 MIN_CHUNK_CHARS = 80
 MAX_CHUNK_CHARS = 2000
