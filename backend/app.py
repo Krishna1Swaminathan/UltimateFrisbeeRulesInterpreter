@@ -17,7 +17,7 @@ from groq import Groq
 # ── Config ────────────────────────────────────────────────────────────────────
 INDEX_NAME  = "usau-rules"
 HF_MODEL    = "sentence-transformers/all-MiniLM-L6-v2"
-HF_API_URL  = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{HF_MODEL}"
+HF_API_URL  = "https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction"
 GROQ_MODEL  = "llama-3.3-70b-versatile"
 TOP_K       = 6
 
