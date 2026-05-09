@@ -25,157 +25,107 @@
     --gray-400: #9ca3af;
     --gray-600: #4b5563;
     --gray-800: #1f2937;
-    --gray-900: #111827;
     --surface: #ffffff;
     --bg: #f0f4f1;
     --radius: 10px;
     --radius-lg: 16px;
   }
 
-  body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg);
-    color: var(--gray-800);
-    min-height: 100vh;
-  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--gray-800); min-height: 100vh; }
 
-  /* ── Header ── */
   header {
     background: var(--green-dark);
     padding: 1.25rem 2rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+    display: flex; align-items: center; gap: 1rem;
   }
   .disc-icon {
-    width: 40px; height: 40px;
-    border-radius: 50%;
+    width: 40px; height: 40px; border-radius: 50%;
     border: 3px solid rgba(255,255,255,0.9);
     display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
   }
   .disc-icon::after {
-    content: '';
-    width: 18px; height: 6px;
-    border: 2px solid rgba(255,255,255,0.9);
-    border-radius: 50%;
-    display: block;
+    content: ''; width: 18px; height: 6px;
+    border: 2px solid rgba(255,255,255,0.9); border-radius: 50%; display: block;
   }
-  header h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.35rem; font-weight: 800;
-    color: #fff; letter-spacing: -0.02em;
-  }
+  header h1 { font-family: 'Syne', sans-serif; font-size: 1.35rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
   header p { font-size: 0.75rem; color: rgba(255,255,255,0.6); font-family: 'DM Mono', monospace; margin-top: 1px; }
   .header-badge {
-    margin-left: auto;
-    background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.8);
+    margin-left: auto; background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.8);
     font-size: 0.7rem; font-family: 'DM Mono', monospace;
-    padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2);
+    padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;
   }
 
-  /* ── Layout ── */
   .layout {
     display: grid;
-    grid-template-columns: 260px 1fr;
+    grid-template-columns: 250px 1fr;
     gap: 1.5rem;
     max-width: 1100px;
     margin: 0 auto;
     padding: 2rem 1.5rem 4rem;
   }
 
-  /* ── Sidebar / History ── */
+  /* ── Sidebar ── */
   .sidebar { min-width: 0; }
 
   .sidebar-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.68rem; font-weight: 500;
-    color: var(--gray-400); text-transform: uppercase;
-    letter-spacing: 0.09em; margin-bottom: 0.6rem;
-    display: flex; align-items: center; justify-content: space-between;
+    font-family: 'DM Mono', monospace; font-size: 0.68rem; font-weight: 500;
+    color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.09em;
+    margin-bottom: 0.6rem; display: flex; align-items: center; justify-content: space-between;
   }
-
   .clear-btn {
-    background: none; border: none; cursor: pointer;
-    color: var(--gray-400); font-size: 0.68rem;
-    font-family: 'DM Mono', monospace;
-    padding: 2px 6px; border-radius: 4px;
-    transition: color 0.15s, background 0.15s;
+    background: none; border: none; cursor: pointer; color: var(--gray-400);
+    font-size: 0.68rem; font-family: 'DM Mono', monospace;
+    padding: 2px 6px; border-radius: 4px; transition: color 0.15s, background 0.15s;
   }
   .clear-btn:hover { color: var(--red); background: var(--red-light); }
 
   .history-empty {
-    font-size: 0.78rem; color: var(--gray-400);
-    font-family: 'DM Mono', monospace;
-    padding: 1rem;
-    background: var(--surface);
-    border: 1px dashed var(--gray-200);
-    border-radius: var(--radius);
-    text-align: center;
-    line-height: 1.6;
+    font-size: 0.78rem; color: var(--gray-400); font-family: 'DM Mono', monospace;
+    padding: 1.25rem 1rem; background: var(--surface); border: 1px dashed var(--gray-200);
+    border-radius: var(--radius); text-align: center; line-height: 1.7;
   }
 
   .history-list { display: flex; flex-direction: column; gap: 6px; }
 
   .history-item {
-    background: var(--surface);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius);
-    padding: 0.65rem 0.85rem;
-    cursor: pointer;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    position: relative;
+    background: var(--surface); border: 1px solid var(--gray-200);
+    border-radius: var(--radius); padding: 0.65rem 0.85rem;
+    cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s;
   }
   .history-item:hover { border-color: var(--green-mid); box-shadow: 0 0 0 3px rgba(45,155,87,0.07); }
   .history-item.active { border-color: var(--green); background: var(--green-light); }
 
   .history-ruling {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem; font-weight: 500;
-    margin-bottom: 3px;
+    font-family: 'DM Mono', monospace; font-size: 0.65rem; font-weight: 500; margin-bottom: 3px;
   }
-  .history-ruling.violation { color: var(--red); }
-  .history-ruling.no-violation { color: var(--green); }
-  .history-ruling.foul { color: var(--amber); }
-  .history-ruling.other { color: var(--blue); }
+  .ruling-violation { color: var(--red); }
+  .ruling-no-violation { color: var(--green); }
+  .ruling-foul { color: var(--amber); }
+  .ruling-other { color: var(--blue); }
 
   .history-scenario {
-    font-size: 0.75rem; color: var(--gray-600);
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    font-size: 0.75rem; color: var(--gray-600); line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
+  .history-time { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--gray-400); margin-top: 4px; }
 
-  .history-time {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.62rem; color: var(--gray-400);
-    margin-top: 4px;
-  }
-
-  /* ── Main content ── */
+  /* ── Main ── */
   .main { min-width: 0; }
 
-  /* ── Input card ── */
   .input-card {
-    background: var(--surface);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--gray-200);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
+    background: var(--surface); border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200); padding: 1.5rem; margin-bottom: 1.5rem;
   }
   .input-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.7rem; font-weight: 500;
-    color: var(--green); text-transform: uppercase;
-    letter-spacing: 0.08em; margin-bottom: 0.6rem; display: block;
+    font-family: 'DM Mono', monospace; font-size: 0.7rem; font-weight: 500;
+    color: var(--green); text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 0.6rem; display: block;
   }
   textarea {
-    width: 100%; border: 1px solid var(--gray-200);
-    border-radius: var(--radius); padding: 0.85rem 1rem;
-    font-family: 'Inter', sans-serif; font-size: 0.95rem;
-    line-height: 1.6; color: var(--gray-800);
-    resize: vertical; min-height: 110px;
+    width: 100%; border: 1px solid var(--gray-200); border-radius: var(--radius);
+    padding: 0.85rem 1rem; font-family: 'Inter', sans-serif; font-size: 0.95rem;
+    line-height: 1.6; color: var(--gray-800); resize: vertical; min-height: 110px;
     transition: border-color 0.15s; background: var(--gray-50);
   }
   textarea:focus { outline: none; border-color: var(--green-mid); background: #fff; box-shadow: 0 0 0 3px rgba(45,155,87,0.08); }
@@ -185,38 +135,39 @@
   .example-btn {
     font-size: 0.72rem; font-family: 'DM Mono', monospace;
     background: var(--green-light); color: var(--green-dark);
-    border: 1px solid #c3dfc9; border-radius: 20px;
-    padding: 4px 12px; cursor: pointer;
-    transition: background 0.12s; white-space: nowrap;
+    border: 1px solid #c3dfc9; border-radius: 20px; padding: 4px 12px;
+    cursor: pointer; transition: background 0.12s; white-space: nowrap;
   }
   .example-btn:hover { background: #d4edda; border-color: #a8cdb5; }
 
-  .submit-row { margin-top: 1rem; display: flex; justify-content: flex-end; align-items: center; gap: 1rem; }
+  .submit-row { margin-top: 1rem; display: flex; justify-content: flex-end; }
   .submit-btn {
-    background: var(--green); color: #fff; border: none;
-    border-radius: var(--radius); padding: 0.65rem 1.5rem;
-    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem;
+    background: var(--green); color: #fff; border: none; border-radius: var(--radius);
+    padding: 0.65rem 1.5rem; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem;
     cursor: pointer; display: flex; align-items: center; gap: 8px;
     transition: background 0.15s, transform 0.1s;
   }
   .submit-btn:hover { background: var(--green-mid); }
   .submit-btn:active { transform: scale(0.98); }
   .submit-btn:disabled { background: var(--gray-400); cursor: not-allowed; transform: none; }
+
   .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
   .spinner.active { display: block; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .db-status { font-size: 0.72rem; font-family: 'DM Mono', monospace; color: var(--gray-400); display: flex; align-items: center; gap: 6px; }
-  .db-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gray-400); }
-  .db-dot.ready { background: var(--green-mid); }
-  .db-dot.error { background: var(--red); }
+  /* ── Result ── */
+  .result-card {
+    background: var(--surface); border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200); overflow: hidden;
+    animation: fadeUp 0.3s ease; margin-bottom: 1.5rem;
+  }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-  /* ── Result card ── */
-  .result-card { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--gray-200); overflow: hidden; animation: fadeUp 0.3s ease; margin-bottom: 1.5rem; }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-  .result-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; gap: 1rem; }
-  .ruling-badge { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem; padding: 6px 14px; border-radius: 8px; }
+  .result-header {
+    padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--gray-200);
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  }
+  .ruling-badge { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem; padding: 6px 14px; border-radius: 8px; white-space: nowrap; }
   .badge-violation { background: var(--red-light); color: var(--red); }
   .badge-no-violation { background: var(--green-light); color: var(--green-dark); }
   .badge-foul { background: var(--amber-light); color: var(--amber); }
@@ -224,15 +175,29 @@
   .ruling-summary { font-size: 0.95rem; color: var(--gray-800); font-weight: 500; line-height: 1.4; }
 
   .result-body { padding: 1.5rem; display: grid; gap: 1.25rem; }
-  .result-section h3 { font-family: 'DM Mono', monospace; font-size: 0.68rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.09em; color: var(--gray-400); margin-bottom: 0.4rem; }
+  .result-section h3 {
+    font-family: 'DM Mono', monospace; font-size: 0.68rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.09em; color: var(--gray-400); margin-bottom: 0.4rem;
+  }
   .result-section p { font-size: 0.93rem; line-height: 1.65; color: var(--gray-800); }
-  .rule-ref { font-family: 'DM Mono', monospace; font-size: 0.82rem; background: var(--green-light); color: var(--green-dark); padding: 8px 12px; border-radius: 8px; border-left: 3px solid var(--green-mid); }
-  .ambiguity-note { font-size: 0.85rem; background: var(--amber-light); color: #92400e; padding: 10px 14px; border-radius: 8px; border-left: 3px solid var(--amber); line-height: 1.6; }
+  .rule-ref {
+    font-family: 'DM Mono', monospace; font-size: 0.82rem;
+    background: var(--green-light); color: var(--green-dark);
+    padding: 8px 12px; border-radius: 8px; border-left: 3px solid var(--green-mid);
+  }
+  .ambiguity-note {
+    font-size: 0.85rem; background: var(--amber-light); color: #92400e;
+    padding: 10px 14px; border-radius: 8px; border-left: 3px solid var(--amber); line-height: 1.6;
+  }
 
-  /* ── Retrieved sections ── */
-  .retrieved-toggle { width: 100%; text-align: left; background: var(--gray-50); border: none; border-top: 1px solid var(--gray-200); padding: 0.85rem 1.5rem; font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--gray-600); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.12s; }
+  .retrieved-toggle {
+    width: 100%; text-align: left; background: var(--gray-50); border: none;
+    border-top: 1px solid var(--gray-200); padding: 0.85rem 1.5rem;
+    font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--gray-600);
+    cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.12s;
+  }
   .retrieved-toggle:hover { background: var(--gray-100); }
-  .toggle-arrow { transition: transform 0.2s; }
+  .toggle-arrow { transition: transform 0.2s; display: inline-block; }
   .toggle-arrow.open { transform: rotate(180deg); }
   .retrieved-sections { display: none; border-top: 1px solid var(--gray-200); }
   .retrieved-sections.open { display: block; }
@@ -244,16 +209,22 @@
   .chunk-text { font-size: 0.82rem; color: var(--gray-600); line-height: 1.6; max-height: 120px; overflow: hidden; position: relative; }
   .chunk-text::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: linear-gradient(transparent, #fff); }
 
-  /* ── Error ── */
-  .error-box { background: var(--red-light); border: 1px solid #fecaca; border-radius: var(--radius); padding: 1rem 1.25rem; color: var(--red); font-size: 0.88rem; display: flex; align-items: flex-start; gap: 10px; animation: fadeUp 0.25s ease; }
+  .error-box {
+    background: var(--red-light); border: 1px solid #fecaca; border-radius: var(--radius);
+    padding: 1rem 1.25rem; color: var(--red); font-size: 0.88rem;
+    display: flex; align-items: flex-start; gap: 10px; animation: fadeUp 0.25s ease;
+    margin-bottom: 1.5rem;
+  }
 
-  /* ── Pipeline ── */
-  .pipeline { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 1rem 1.25rem; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--gray-200); }
+  .pipeline {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    padding: 1rem 1.25rem; background: var(--surface);
+    border-radius: var(--radius); border: 1px solid var(--gray-200);
+  }
   .pipe-step { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--gray-600); background: var(--gray-100); padding: 4px 10px; border-radius: 20px; }
   .pipe-step.active { background: var(--green-light); color: var(--green-dark); }
   .pipe-arrow { color: var(--gray-400); font-size: 0.75rem; }
 
-  /* ── Responsive ── */
   @media (max-width: 700px) {
     .layout { grid-template-columns: 1fr; }
     .sidebar { order: 2; }
@@ -274,29 +245,22 @@
 
 <div class="layout">
 
-  <!-- ── Sidebar: History ── -->
+  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-label">
       <span>Recent Rulings</span>
       <button class="clear-btn" onclick="clearHistory()">Clear</button>
     </div>
-    <div id="history-container">
-      <div class="history-empty" id="history-empty">
-        Your ruling history<br>will appear here
-      </div>
-      <div class="history-list" id="history-list" style="display:none;"></div>
-    </div>
+    <div id="history-empty" class="history-empty">Your ruling<br>history will<br>appear here</div>
+    <div class="history-list" id="history-list"></div>
   </aside>
 
-  <!-- ── Main ── -->
+  <!-- Main -->
   <main class="main">
 
     <div class="input-card">
       <label class="input-label" for="scenario">Describe the game scenario</label>
-      <textarea
-        id="scenario"
-        placeholder="e.g. The receiver caught the disc but then took two extra steps before stopping. The defender called travel."
-      ></textarea>
+      <textarea id="scenario" placeholder="e.g. The receiver caught the disc but then took two extra steps before stopping. The defender called travel."></textarea>
 
       <div class="examples-row">
         <span style="font-size:0.72rem;color:var(--gray-400);font-family:'DM Mono',monospace;align-self:center;">Try:</span>
@@ -308,10 +272,6 @@
       </div>
 
       <div class="submit-row">
-        <div class="db-status" id="db-status">
-          <div class="db-dot" id="db-dot"></div>
-          <span id="db-text">Checking database…</span>
-        </div>
         <button class="submit-btn" id="submit-btn" onclick="interpret()">
           <div class="spinner" id="spinner"></div>
           <span id="btn-text">Get Ruling</span>
@@ -347,30 +307,16 @@ const EXAMPLES = [
   "A receiver leaped for a disc near the sideline. They caught it clearly in the air but landed with one foot in bounds and one foot out of bounds simultaneously. Is it a completion?"
 ];
 
-// ── History (in-memory, persists for the session) ─────────────────────────
-let history = [];   // [{id, scenario, ruling, summary, timestamp, data}]
-let activeHistoryId = null;
+// ── History ───────────────────────────────────────────────────────────────
+let history = [];
+let activeId = null;
 
 function addToHistory(scenario, data) {
-  const entry = {
-    id: Date.now(),
-    scenario,
-    ruling: data.ruling,
-    summary: data.summary,
-    timestamp: new Date(),
-    data,
-  };
-  history.unshift(entry);          // newest first
-  if (history.length > 20) history.pop();  // cap at 20
+  const entry = { id: Date.now(), scenario, ruling: data.ruling, timestamp: new Date(), data };
+  history.unshift(entry);
+  if (history.length > 20) history.pop();
+  activeId = entry.id;
   renderHistory();
-  setActiveHistory(entry.id);
-}
-
-function setActiveHistory(id) {
-  activeHistoryId = id;
-  document.querySelectorAll('.history-item').forEach(el => {
-    el.classList.toggle('active', el.dataset.id == id);
-  });
 }
 
 function renderHistory() {
@@ -379,48 +325,41 @@ function renderHistory() {
 
   if (history.length === 0) {
     empty.style.display = 'block';
-    list.style.display  = 'none';
+    list.innerHTML = '';
     return;
   }
-  empty.style.display = 'none';
-  list.style.display  = 'flex';
 
+  empty.style.display = 'none';
   list.innerHTML = history.map(e => {
-    const rulingClass = getRulingClass(e.ruling);
-    const timeStr = formatTime(e.timestamp);
+    const cls = rulingClass(e.ruling);
     return `
-      <div class="history-item ${e.id === activeHistoryId ? 'active' : ''}"
-           data-id="${e.id}"
-           onclick="loadHistoryEntry(${e.id})">
-        <div class="history-ruling ${rulingClass}">${escHtml(e.ruling)}</div>
+      <div class="history-item ${e.id === activeId ? 'active' : ''}" onclick="loadEntry(${e.id})">
+        <div class="history-ruling ruling-${cls}">${escHtml(e.ruling)}</div>
         <div class="history-scenario">${escHtml(e.scenario)}</div>
-        <div class="history-time">${timeStr}</div>
-      </div>
-    `;
+        <div class="history-time">${relTime(e.timestamp)}</div>
+      </div>`;
   }).join('');
 }
 
-function loadHistoryEntry(id) {
+function loadEntry(id) {
   const entry = history.find(e => e.id === id);
   if (!entry) return;
-  // Restore scenario in textarea
+  activeId = id;
   document.getElementById('scenario').value = entry.scenario;
-  // Re-render the result
   document.getElementById('result-area').innerHTML = renderResult(entry.data);
-  setActiveHistory(id);
+  renderHistory();
   setPipelineStep(5);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function clearHistory() {
   history = [];
-  activeHistoryId = null;
+  activeId = null;
   renderHistory();
   document.getElementById('result-area').innerHTML = '';
   setPipelineStep(0);
 }
 
-function getRulingClass(ruling) {
+function rulingClass(ruling) {
   const r = (ruling || '').toLowerCase();
   if (r.includes('no violation') || r.includes('no travel')) return 'no-violation';
   if (r.includes('travel') || (r.includes('violation') && !r.includes('no'))) return 'violation';
@@ -428,46 +367,25 @@ function getRulingClass(ruling) {
   return 'other';
 }
 
-function formatTime(date) {
-  const now = new Date();
-  const diff = Math.floor((now - date) / 1000);
-  if (diff < 60)  return 'just now';
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+function relTime(date) {
+  const diff = Math.floor((Date.now() - date) / 1000);
+  if (diff < 60)   return 'just now';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-// ── DB status ─────────────────────────────────────────────────────────────
-async function checkStatus() {
-  try {
-    const r = await fetch(`${BACKEND}/api/status`);
-    const d = await r.json();
-    const dot = document.getElementById('db-dot');
-    const txt = document.getElementById('db-text');
-    if (d.ready) {
-      dot.className = 'db-dot ready';
-      txt.textContent = `DB ready — ${d.chunks} rule chunks indexed`;
-    } else {
-      dot.className = 'db-dot error';
-      txt.textContent = 'DB not populated — run ingest.py first';
-    }
-  } catch {
-    document.getElementById('db-dot').className = 'db-dot error';
-    document.getElementById('db-text').textContent = 'Backend offline — start app.py';
-  }
-}
-
+// ── UI helpers ────────────────────────────────────────────────────────────
 function setExample(i) {
   document.getElementById('scenario').value = EXAMPLES[i];
   document.getElementById('scenario').focus();
 }
 
 function setPipelineStep(step) {
-  for (let i = 1; i <= 5; i++) {
-    document.getElementById(`p${i}`).className = i <= step ? 'pipe-step active' : 'pipe-step';
-  }
+  for (let i = 1; i <= 5; i++)
+    document.getElementById('p' + i).className = i <= step ? 'pipe-step active' : 'pipe-step';
 }
 
-function getBadgeClass(ruling) {
+function badgeClass(ruling) {
   const r = (ruling || '').toLowerCase();
   if (r.includes('no violation') || r.includes('no travel')) return 'badge-no-violation';
   if (r.includes('travel') || (r.includes('violation') && !r.includes('no'))) return 'badge-violation';
@@ -506,15 +424,15 @@ async function interpret() {
     setPipelineStep(5);
 
     if (!resp.ok || data.error) {
-      area.innerHTML = `<div class="error-box">⚠ ${data.error || 'An error occurred.'}</div>`;
+      area.innerHTML = `<div class="error-box">⚠ ${escHtml(data.error || 'An error occurred.')}</div>`;
       return;
     }
 
     area.innerHTML = renderResult(data);
-    addToHistory(scenario, data);   // ← save to history
+    addToHistory(scenario, data);
 
-  } catch {
-    area.innerHTML = `<div class="error-box">⚠ Could not reach the backend. Make sure app.py is running on port 5000.</div>`;
+  } catch (err) {
+    area.innerHTML = `<div class="error-box">⚠ Could not reach the backend. Make sure app.py is running on port 5000.<br><small style="opacity:0.7">${escHtml(String(err))}</small></div>`;
     setPipelineStep(0);
   } finally {
     btn.disabled = false;
@@ -525,25 +443,23 @@ async function interpret() {
 
 // ── Render result ─────────────────────────────────────────────────────────
 function renderResult(d) {
-  const badgeClass = getBadgeClass(d.ruling);
-  const sections   = d.retrieved_sections || [];
-  const hasAmbig   = d.ambiguity_note && d.ambiguity_note.trim().length > 2;
-  const uid        = Date.now();   // unique id for toggle refs
+  const uid      = Math.random().toString(36).slice(2);
+  const sections = d.retrieved_sections || [];
+  const hasAmbig = d.ambiguity_note && d.ambiguity_note.trim().length > 2;
 
-  const sectionHTML = sections.map(s => `
+  const chunksHTML = sections.map(s => `
     <div class="retrieved-chunk">
       <div class="chunk-header">
         <span class="chunk-title">${escHtml(s.title)}</span>
-        <span class="chunk-score">relevance: ${(s.relevance_score||0).toFixed(2)}</span>
+        <span class="chunk-score">relevance: ${(s.relevance_score || 0).toFixed(2)}</span>
       </div>
       <div class="chunk-text">${escHtml(s.text)}</div>
-    </div>
-  `).join('');
+    </div>`).join('');
 
   return `
     <div class="result-card">
       <div class="result-header">
-        <span class="ruling-badge ${badgeClass}">${escHtml(d.ruling)}</span>
+        <span class="ruling-badge ${badgeClass(d.ruling)}">${escHtml(d.ruling)}</span>
         <span class="ruling-summary">${escHtml(d.summary)}</span>
       </div>
       <div class="result-body">
@@ -555,8 +471,7 @@ function renderResult(d) {
           <h3>Rule reference</h3>
           <div class="rule-ref">${escHtml(d.rule_reference)}</div>
         </div>
-        ${hasAmbig ? `
-        <div class="result-section">
+        ${hasAmbig ? `<div class="result-section">
           <h3>Ambiguity note</h3>
           <div class="ambiguity-note">${escHtml(d.ambiguity_note)}</div>
         </div>` : ''}
@@ -566,10 +481,8 @@ function renderResult(d) {
         <span class="toggle-arrow">▾</span>
         Show ${sections.length} retrieved rule sections (RAG context)
       </button>
-      <div class="retrieved-sections" id="rs_${uid}">${sectionHTML}</div>
-      ` : ''}
-    </div>
-  `;
+      <div class="retrieved-sections" id="rs_${uid}">${chunksHTML}</div>` : ''}
+    </div>`;
 }
 
 function toggleSections(btn, divId) {
@@ -578,14 +491,13 @@ function toggleSections(btn, divId) {
   const open  = div.classList.toggle('open');
   arrow.classList.toggle('open', open);
   const n = div.querySelectorAll('.retrieved-chunk').length;
-  btn.childNodes[2].textContent = open
-    ? ` Hide retrieved rule sections`
-    : ` Show ${n} retrieved rule sections (RAG context)`;
+  btn.querySelector('span:last-child') && (btn.childNodes[2].textContent =
+    open ? ' Hide retrieved rule sections'
+         : ` Show ${n} retrieved rule sections (RAG context)`);
 }
 
 function escHtml(str) {
-  if (!str) return '';
-  return String(str)
+  return String(str || '')
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -595,8 +507,6 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 document.getElementById('scenario').addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') interpret();
 });
-
-checkStatus();
 </script>
 </body>
 </html>
