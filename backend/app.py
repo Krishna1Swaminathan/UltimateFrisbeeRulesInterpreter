@@ -1,6 +1,7 @@
 """
-app.py — Flask backend for the Ultimate Frisbee Rules Interpreter.
+app.py: Flask backend for the Ultimate Frisbee Rules Interpreter.
 Embeddings via HF Inference API (no torch, ~60MB RAM).
+LLM via Groq (openai/gpt-oss-120b).
 Serves the frontend from /frontend at the root route.
 """
 
@@ -18,7 +19,7 @@ from groq import Groq
 INDEX_NAME  = "usau-rules"
 HF_MODEL    = "sentence-transformers/all-MiniLM-L6-v2"
 HF_API_URL  = "https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction"
-GROQ_MODEL  = "llama-3.3-70b-versatile"
+GROQ_MODEL  = "openai/gpt-oss-120b"   # swap to "openai/gpt-oss-20b" if rate limited
 TOP_K       = 6
 
 # Frontend is one directory up from backend/
@@ -108,7 +109,7 @@ The rule sections use a lettered/numbered subsection format, e.g.:
   17.B. Pick: A pick occurs when ...
   17.B.1. A player may call "pick" ...
 
-Read ALL subsections carefully — the answer is often in a subsection, not the heading.
+Read ALL subsections carefully. The answer is often in a subsection, not the heading.
 
 Your response MUST be a valid JSON object with EXACTLY these fields:
 
@@ -116,7 +117,7 @@ Your response MUST be a valid JSON object with EXACTLY these fields:
   "ruling": "Travel | No Violation | Foul | Pick | Contest | Turnover | Out of Bounds | Other",
   "summary": "One sentence verdict (e.g. 'This is a valid pick call.')",
   "explanation": "2-4 sentences explaining WHY this ruling applies, citing the specific subsection (e.g. Rule 17.B.1). Use plain English.",
-  "rule_reference": "The specific subsection(s) that apply (e.g. 'Rule 17.B — Pick').",
+  "rule_reference": "The specific subsection(s) that apply (e.g. 'Rule 17.B: Pick').",
   "ambiguity_note": "Any genuine ambiguity or interpretation edge case. Empty string if none.",
   "retrieved_sections": []
 }
@@ -134,16 +135,25 @@ def generate_ruling(scenario: str, chunks: list[dict]) -> dict:
     context      = "\n\n".join(f"[{c['title']}]\n{c['text']}" for c in chunks)
     user_message = f"GAME SCENARIO:\n{scenario}\n\nRETRIEVED RULE SECTIONS:\n{context}\n\nReturn your ruling as JSON."
 
-    raw = get_groq().chat.completions.create(
-        model       = GROQ_MODEL,
-        messages    = [
+    response = get_groq().chat.completions.create(
+        model           = GROQ_MODEL,
+        messages        = [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user",   "content": user_message},
         ],
-        temperature = 0.1,
-        max_tokens  = 800,
-    ).choices[0].message.content.strip()
+        temperature     = 0.1,
+        max_tokens      = 2000,   # reasoning tokens count toward this, so 800 is too low
+        response_format = {"type": "json_object"},
+        # Passed through extra_body so it works even on older groq SDK versions
+        extra_body      = {"reasoning_effort": "low"},
+    )
 
+    raw = response.choices[0].message.content
+    if not raw:
+        raise RuntimeError("The model returned an empty response. Try again.")
+    raw = raw.strip()
+
+    # Safety net in case the model wraps the JSON in markdown fences
     if raw.startswith("```"):
         raw = raw.split("```")[1]
         if raw.startswith("json"):
@@ -208,7 +218,7 @@ def interpret():
 # ── Entry point ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    print(f"🥏 Ultimate Rules Interpreter — port {port}")
+    print(f"🥏 Ultimate Rules Interpreter on port {port}")
     print(f"   Frontend: {os.path.abspath(FRONTEND_DIR)}")
     print(f"   Embedder: {HF_MODEL} via HF Inference API")
     print(f"   LLM:      {GROQ_MODEL} via Groq")
